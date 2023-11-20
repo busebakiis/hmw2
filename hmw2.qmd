@@ -1,0 +1,150 @@
+---
+title: "Regular Expression"
+author: "Buse Bakış"
+format: html
+editor: visual
+---
+
+# Regular Expressions
+
+### Replace Values
+
+We can modify strings with some functions such as **str_replace()** and **str_replace_all()**. Difference of them is **str_replace()** replaces the first match, and as the name suggests, **str_replaces_all()** replaces all matches.
+
+```{r}
+#install.packages("stringr")
+library(stringr)
+
+dessert <- c("cake", "apple pie", "banana bread", "brownie", "marshmallow")
+
+x <- str_replace(dessert, "a", "@")
+y <- str_replace_all(dessert, "a", "@")
+cbind(x, y)
+
+```
+
+Also, we can remove some characters or strings with the functions **str_remove()** and **str_remove_all()** with the same logic.
+
+```{r}
+
+x_rmv <- str_remove(dessert, "e")
+y_rmv <- str_remove_all(dessert, "e")
+
+cbind(x_rmv,y_rmv)
+```
+
+These functions are naturally paired with **mutate()** when doing data cleaning, and you'll often apply them repeatedly to peel off layers of inconsistent formatting.
+
+#### Example
+
+```{r}
+#install.packages("datasets")
+library(tidyverse)
+
+data <- tribble(~FirstNames, ~LastNames, ~Series,
+                "Rechel","Green","Craxy Ex Girlfriend",
+                "Serah", "Paulson", "American Horror Story",
+                "Sofie", "Vergara", "Modern Family",
+                "Jeson", "Bateman", "Ozark")
+
+data
+
+data <- data %>%
+  mutate(FirstNames = str_replace(FirstNames, "e","a"))
+
+data
+
+```
+
+```{r}
+
+colours <- str_c("\\b", colors(), "\\b", collapse="|")
+col2hex <- function(col) {
+  rgb <- col2rgb(col)
+  rgb(rgb["red", ], rgb["green", ], rgb["blue", ], max = 255)
+}
+
+x <- c(
+  "Roses are red, violets are blue",
+  "My favourite colour is green"
+)
+str_replace_all(x, colours, col2hex)
+```
+
+We can also replace **"NA"** values with the correct expression.
+
+```{r}
+
+weekday <- c("Monday",NA,"Wednesday",
+        "Thursday","Friday")
+
+str_replace_na(weekday, "Tuesday")
+
+
+```
+
+### Extract Variables
+
+To extract variables with the correct way, we can use some fuction in packages **tidyr**. These are **separate_wider_regex()**, **separate_wider_position()** and **separate_wider_delim()**. They can be used for separation of strings with after any special characters, position and patterns.
+
+```{r}
+
+recipe <- tribble(
+  ~allrecipes,
+  "<Hamburger>-beef_nonvegetarian",
+  "<BakedPotatoes>-potatoes_vegetarian",
+  "<ItalianChicken>-chicken_nonvegetarian"
+)
+
+recipe
+
+recipe |>
+  separate_wider_regex(
+    allrecipes,
+    patterns = c(
+      "<",
+      dish= "[A-Za-z]+",
+      ">-",
+      main_ingredients = "[A-Za-z]+",
+      "_",
+      type = "[A-Za-z]+"
+      ))
+
+```
+
+```{r}
+
+data <- tribble(~name,
+          "europe_france",
+          "asia_china",
+          "africa_dubai")
+
+data |>
+  separate_wider_delim(name, delim= "_", names = c("continent", "country"))
+
+
+```
+
+```{r}
+
+df <- tribble(~x,
+              "AlexaF",
+              "MannyM",
+              "AbbysF")
+
+df |> separate_wider_position(x, c(name = 5, gender= 1))
+
+
+
+```
+
+```{r}
+
+df <- tribble(~x,
+              "a-b-c", "d-e-f-g", "h-i-j-k", "l-m-n-o-p")
+
+df
+
+df |> separate_longer_delim(x, delim = "-")
+
+```
